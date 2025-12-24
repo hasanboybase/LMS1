@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Sertifikat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5 text-center" style="background: linear-gradient(135deg, #f5f7fa, #c3cfe2);">
+                    <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
+                    <h2 class="mt-2">SERTIFIKAT</h2>
+                    <hr class="my-4">
+                    <p>Bu sertifikat</p>
+                    <h3 class="text-primary">{{ certificate.student.get_full_name|default:certificate.student.username }}</h3>
+                    <p>quyidagi kursni tugatganini tasdiqlaydi:</p>
+                    <div class="bg-white rounded p-3 mb-4">
+                        <h4>{{ certificate.course.title }}</h4>
+                    </div>
+                    <p class="text-muted">Berilgan: {{ certificate.issued_at|date:"d.m.Y" }}</p>
+                    <p><code>{{ certificate.certificate_number }}</code></p>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="bi bi-printer me-2"></i>Chop etish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

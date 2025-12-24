@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Yangi kurs{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Yangi kurs yaratish</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Kurs nomi *</label>
+                            {{ form.title }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tavsif *</label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kategoriya</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Daraja</label>
+                                {{ form.level }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Narx</label>
+                                {{ form.price }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rasm</label>
+                                {{ form.thumbnail }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.is_free }} <label>Bepul</label>
+                            {{ form.is_published }} <label class="ms-3">Nashr qilish</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-lg me-2"></i>Yaratish</button>
+                        <a href="{% url 'teacher_courses' %}" class="btn btn-outline-secondary btn-lg">Bekor</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

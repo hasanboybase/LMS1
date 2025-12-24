@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Xush kelibsiz, {{ request.user.get_full_name|default:request.user.username }}!</h2>
+            <p class="text-muted mb-0">O'qishni davom eting va yangi ko'nikmalarni o'rganing</p>
+        </div>
+        {% if request.user.profile.is_teacher %}
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary">
+            <i class="bi bi-mortarboard me-2"></i>O'qituvchi paneli
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-collection-play display-6"></i>
+                    <h3 class="mt-2 mb-0">{{ total_courses }}</h3>
+                    <small>Jami kurslar</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-6"></i>
+                    <h3 class="mt-2 mb-0">{{ completed_count }}</h3>
+                    <small>Tugatilgan</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm bg-warning text-dark">
+                <div class="card-body text-center">
+                    <i class="bi bi-play-circle display-6"></i>
+                    <h3 class="mt-2 mb-0">{{ in_progress_count }}</h3>
+                    <small>Davom etmoqda</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy display-6"></i>
+                    <h3 class="mt-2 mb-0">{{ xp_profile.total_xp }}</h3>
+                    <small>XP ball</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- My Courses -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-book me-2"></i>Mening kurslarim</h5>
+                    <a href="{% url 'my_courses' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                    <div class="row">
+                        {% for enrollment in enrollments %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ enrollment.course.title|truncatewords:5 }}</h6>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar {% if enrollment.completed %}bg-success{% endif %}"
+                                             style="width: {{ enrollment.progress }}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">{{ enrollment.progress }}% tugatildi</small>
+                                        <a href="{% url 'course_learn' enrollment.course.slug %}" class="btn btn-sm btn-primary">
+                                            Davom etish
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-book display-4 text-muted"></i>
+                        <p class="text-muted mt-2">Hali kurslarga yozilmagansiz</p>
+                        <a href="{% url 'course_list' %}" class="btn btn-primary">Kurslarni ko'rish</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- XP Profile -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 80px; height: 80px;">
+                        <span class="h4 mb-0">{{ xp_profile.level }}</span>
+                    </div>
+                    <h5>{{ xp_profile.rank_title }}</h5>
+                    <p class="text-muted mb-2">{{ xp_profile.total_xp }} XP</p>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar" style="width: {{ xp_profile.level_progress }}%"></div>
+                    </div>
+                    <small class="text-muted">Keyingi darajagacha: {{ xp_profile.xp_to_next_level }} XP</small>
+                </div>
+            </div>
+
+            <!-- Certificates -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-award me-2"></i>Sertifikatlar</h6>
+                </div>
+                <div class="card-body">
+                    {% if certificates %}
+                    {% for cert in certificates %}
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-patch-check-fill text-success me-2"></i>
+                        <small>{{ cert.course.title|truncatewords:4 }}</small>
+                    </div>
+                    {% endfor %}
+                    <a href="{% url 'my_certificates' %}" class="btn btn-sm btn-outline-primary w-100 mt-2">Barchasi</a>
+                    {% else %}
+                    <p class="text-muted small mb-0">Hali sertifikatlar yo'q</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Tezkor havolalar</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'course_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-collection me-2"></i>Barcha kurslar
+                    </a>
+                    <a href="{% url 'leaderboard' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-trophy me-2"></i>Reyting
+                    </a>
+                    <a href="{% url 'chatbot_view' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-robot me-2"></i>AI Mentor
+                    </a>
+                    <a href="{% url 'wishlist_view' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-heart me-2"></i>Istaklar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Courses -->
+    {% if recommended_courses %}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="bi bi-stars me-2"></i>Tavsiya etilgan kurslar</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for course in recommended_courses %}
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 border">
+                        {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center"
+                             style="height: 120px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="bi bi-play-circle text-white" style="font-size: 2rem;"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body p-2">
+                            <h6 class="card-title small">{{ course.title|truncatewords:4 }}</h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-warning"><i class="bi bi-star-fill"></i> {{ course.average_rating|floatformat:1 }}</small>
+                                {% if course.is_free %}
+                                <span class="badge bg-success">Bepul</span>
+                                {% else %}
+                                <small>{{ course.price|floatformat:0 }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent p-2">
+                            <a href="{% url 'course_detail' course.slug %}" class="btn btn-sm btn-outline-primary w-100">Ko'rish</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

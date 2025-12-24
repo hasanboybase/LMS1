@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} - LMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Course Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height: 300px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center"
+                     style="height: 300px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="bi bi-play-circle text-white" style="font-size: 5rem;"></i>
+                </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <!-- Badges -->
+                    <div class="mb-3">
+                        {% if course.category %}
+                        <a href="{% url 'course_list' %}?category={{ course.category.slug }}" class="badge bg-primary text-decoration-none">
+                            {{ course.category.name }}
+                        </a>
+                        {% endif %}
+                        <span class="badge {% if course.level == 'beginner' %}bg-success{% elif course.level == 'intermediate' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            {% if course.level == 'beginner' %}Boshlang'ich{% elif course.level == 'intermediate' %}O'rta{% else %}Yuqori{% endif %}
+                        </span>
+                        {% if course.is_featured %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>Tavsiya etilgan</span>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="card-title">{{ course.title }}</h2>
+                    <p class="text-muted">{{ course.short_description }}</p>
+
+                    <!-- Rating & Stats -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= course.average_rating %}
+                                <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-dark ms-1">{{ course.average_rating|floatformat:1 }}</span>
+                            <span class="text-muted">({{ course.total_reviews }} sharh)</span>
+                        </div>
+                        <span class="text-muted"><i class="bi bi-people me-1"></i>{{ course.total_students }} talaba</span>
+                        <span class="text-muted"><i class="bi bi-translate me-1"></i>{{ course.language|default:"O'zbek" }}</span>
+                    </div>
+
+                    <!-- Teacher -->
+                    <div class="d-flex align-items-center">
+                        {% if course.teacher.profile.avatar %}
+                        <img src="{{ course.teacher.profile.avatar.url }}" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                            <span class="text-white">{{ course.teacher.first_name|first|default:course.teacher.username|first }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <small class="text-muted">O'qituvchi</small>
+                            <div class="fw-bold">{{ course.teacher.get_full_name|default:course.teacher.username }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Kurs haqida</h5>
+                </div>
+                <div class="card-body">
+                    {{ course.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- What You'll Learn -->
+            {% if course.what_you_learn %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-check-circle me-2 text-success"></i>Nimalarni o'rganasiz</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for item in course.what_you_learn.splitlines %}
+                        {% if item.strip %}
+                        <div class="col-md-6 mb-2">
+                            <i class="bi bi-check-lg text-success me-2"></i>{{ item }}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Requirements -->
+            {% if course.requirements %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Talablar</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        {% for item in course.requirements.splitlines %}
+                        {% if item.strip %}
+                        <li class="mb-1">{{ item }}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Course Content -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Kurs tarkibi</h5>
+                    <span class="badge bg-primary">{{ lessons.count }} dars</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for lesson in lessons %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-secondary me-3">{{ forloop.counter }}</span>
+                            <div>
+                                <div class="fw-semibold">{{ lesson.title }}</div>
+                                <small class="text-muted">
+                                    {% if lesson.lesson_type == 'video' %}
+                                    <i class="bi bi-play-circle me-1"></i>Video
+                                    {% elif lesson.lesson_type == 'text' %}
+                                    <i class="bi bi-file-text me-1"></i>Matn
+                                    {% elif lesson.lesson_type == 'quiz' %}
+                                    <i class="bi bi-question-circle me-1"></i>Test
+                                    {% endif %}
+                                    • {{ lesson.duration }} daqiqa
+                                </small>
+                            </div>
+                        </div>
+                        <div>
+                            {% if lesson.is_free %}
+                            <span class="badge bg-success">Bepul</span>
+                            {% else %}
+                            <i class="bi bi-lock text-muted"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted py-4">
+                        <i class="bi bi-inbox display-6"></i>
+                        <p class="mt-2 mb-0">Hali darslar qo'shilmagan</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Sharhlar</h5>
+                    {% if is_enrolled %}
+                    <a href="{% url 'review_create' course.slug %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus me-1"></i>Sharh qoldirish
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                    {% for review in reviews %}
+                    <div class="d-flex mb-4 {% if not forloop.last %}border-bottom pb-4{% endif %}">
+                        {% if review.user.profile.avatar %}
+                        <img src="{{ review.user.profile.avatar.url }}" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            <span class="text-white">{{ review.user.first_name|first }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-0">{{ review.user.get_full_name|default:review.user.username }}</h6>
+                                    <div class="text-warning small">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                            <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                            <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ review.created_at|timesince }} oldin</small>
+                            </div>
+                            {% if review.title %}
+                            <h6 class="mt-2 mb-1">{{ review.title }}</h6>
+                            {% endif %}
+                            <p class="mb-0 text-muted">{{ review.content }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if reviews.count > 10 %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'review_list' course.slug %}" class="btn btn-outline-primary">
+                            Barcha sharhlarni ko'rish
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-dots display-6 text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">Hali sharhlar yo'q</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-body">
+                    <!-- Price -->
+                    <div class="text-center mb-4">
+                        {% if course.is_free %}
+                        <h2 class="text-success mb-0">Bepul</h2>
+                        {% elif course.discount_price %}
+                        <div class="text-muted text-decoration-line-through">{{ course.price|floatformat:0 }} so'm</div>
+                        <h2 class="text-danger mb-0">{{ course.discount_price|floatformat:0 }} so'm</h2>
+                        {% else %}
+                        <h2 class="mb-0">{{ course.price|floatformat:0 }} so'm</h2>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions -->
+                    {% if user.is_authenticated %}
+                        {% if is_enrolled %}
+                        <a href="{% url 'course_learn' course.slug %}" class="btn btn-success btn-lg w-100 mb-3">
+                            <i class="bi bi-play-fill me-2"></i>Davom etish
+                        </a>
+                        {% if enrollment.progress > 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Progress</span>
+                                <span>{{ enrollment.progress }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: {{ enrollment.progress }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <a href="{% url 'enroll_course' course.slug %}" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="bi bi-cart-plus me-2"></i>
+                            {% if course.is_free %}Bepul yozilish{% else %}Sotib olish{% endif %}
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'wishlist_toggle' course.slug %}" class="btn btn-outline-danger w-100 mb-3">
+                            <i class="bi bi-heart me-2"></i>Istaklar ro'yxatiga qo'shish
+                        </a>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg w-100 mb-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+                    </a>
+                    <p class="text-center text-muted small">Kursga yozilish uchun tizimga kiring</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- Course Info -->
+                    <h6 class="mb-3">Kurs ma'lumotlari</h6>
+                    <ul class="list-unstyled">
+                        <li class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-play-circle me-2"></i>Darslar</span>
+                            <strong>{{ course.total_lessons }}</strong>
+                        </li>
+                        <li class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-clock me-2"></i>Davomiyligi</span>
+                            <strong>{{ course.total_duration }} daqiqa</strong>
+                        </li>
+                        <li class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-bar-chart me-2"></i>Daraja</span>
+                            <strong>
+                                {% if course.level == 'beginner' %}Boshlang'ich{% elif course.level == 'intermediate' %}O'rta{% else %}Yuqori{% endif %}
+                            </strong>
+                        </li>
+                        <li class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-translate me-2"></i>Til</span>
+                            <strong>{{ course.language|default:"O'zbek" }}</strong>
+                        </li>
+                        <li class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><i class="bi bi-people me-2"></i>Talabalar</span>
+                            <strong>{{ course.total_students }}</strong>
+                        </li>
+                        <li class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="bi bi-calendar me-2"></i>Yangilangan</span>
+                            <strong>{{ course.updated_at|date:"d.m.Y" }}</strong>
+                        </li>
+                    </ul>
+
+                    <hr>
+
+                    <!-- Share -->
+                    <h6 class="mb-3">Ulashish</h6>
+                    <div class="d-flex gap-2">
+                        <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyLink()">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Courses -->
+    {% if related_courses %}
+    <div class="mt-5">
+        <h4 class="mb-4"><i class="bi bi-collection me-2"></i>O'xshash kurslar</h4>
+        <div class="row">
+            {% for course in related_courses %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" class="card-img-top" style="height: 140px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-primary d-flex align-items-center justify-content-center" style="height: 140px;">
+                        <i class="bi bi-play-circle text-white" style="font-size: 2rem;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title">{{ course.title|truncatewords:6 }}</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-warning small">
+                                <i class="bi bi-star-fill"></i> {{ course.average_rating|floatformat:1 }}
+                            </div>
+                            {% if course.is_free %}
+                            <span class="badge bg-success">Bepul</span>
+                            {% else %}
+                            <strong>{{ course.current_price|floatformat:0 }} so'm</strong>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="{% url 'course_detail' course.slug %}" class="btn btn-outline-primary btn-sm w-100">
+                            Ko'rish
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Havola nusxalandi!');
+}
+</script>
+{% endblock %}

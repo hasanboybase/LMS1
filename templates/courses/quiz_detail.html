@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'course_detail' quiz.lesson.course.slug %}" class="text-decoration-none">
+                <i class="bi bi-arrow-left me-2"></i>{{ quiz.lesson.course.title }}
+            </a>
+            <h2 class="mt-2"><i class="bi bi-question-circle me-2 text-primary"></i>{{ quiz.title }}</h2>
+        </div>
+        {% if is_teacher %}
+        <div class="btn-group">
+            <a href="{% url 'question_create' quiz.pk %}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Savol qo'shish</a>
+            <a href="{% url 'quiz_update' quiz.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Tahrirlash</a>
+            <a href="{% url 'quiz_statistics' quiz.pk %}" class="btn btn-outline-info"><i class="bi bi-bar-chart me-1"></i>Statistika</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0">Ma'lumotlar</h5></div>
+                <div class="card-body">
+                    {% if quiz.description %}<p>{{ quiz.description }}</p>{% endif %}
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <i class="bi bi-clock fs-3 text-primary"></i>
+                            <p class="mb-0 fw-bold">{{ quiz.time_limit }} daqiqa</p>
+                            <small class="text-muted">Vaqt</small>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="bi bi-list-ol fs-3 text-success"></i>
+                            <p class="mb-0 fw-bold">{{ questions|length }} ta</p>
+                            <small class="text-muted">Savollar</small>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="bi bi-check-circle fs-3 text-warning"></i>
+                            <p class="mb-0 fw-bold">{{ quiz.passing_score }}%</p>
+                            <small class="text-muted">O'tish balli</small>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="bi bi-arrow-repeat fs-3 text-info"></i>
+                            <p class="mb-0 fw-bold">{{ quiz.max_attempts }} ta</p>
+                            <small class="text-muted">Urinishlar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if is_teacher %}
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Savollar</h5></div>
+                <div class="card-body">
+                    {% for question in questions %}
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ forloop.counter }}.</strong> {{ question.text|truncatewords:15 }}
+                                    <span class="badge bg-secondary ms-2">{{ question.points }} ball</span>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'question_update' question.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'question_delete' question.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">Savollar yo'q</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            {% if not is_teacher %}
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if can_attempt %}
+                    <a href="{% url 'quiz_start' quiz.pk %}" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-play-fill me-2"></i>Boshlash
+                    </a>
+                    {% else %}
+                    <div class="alert alert-warning mb-0">Urinishlar tugadi</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user_attempts %}
+            <div class="card mt-3">
+                <div class="card-header"><h6 class="mb-0">Urinishlaringiz</h6></div>
+                <div class="card-body">
+                    {% for attempt in user_attempts %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ forloop.counter }}-urinish</span>
+                        <div>
+                            {% if attempt.passed %}
+                            <span class="badge bg-success">{{ attempt.score|floatformat:0 }}%</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ attempt.score|floatformat:0 }}%</span>
+                            {% endif %}
+                            <a href="{% url 'quiz_result' attempt.pk %}" class="btn btn-sm btn-outline-primary ms-1"><i class="bi bi-eye"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

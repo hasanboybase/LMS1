@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% block title %}Profil - {{ request.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <!-- Avatar -->
+                    <div class="position-relative d-inline-block mb-3">
+                        {% if request.user.profile.avatar %}
+                        <img src="{{ request.user.profile.avatar.url }}" class="rounded-circle"
+                             width="120" height="120" style="object-fit: cover; border: 4px solid #667eea;">
+                        {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                             style="width: 120px; height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); border: 4px solid #fff; box-shadow: 0 5px 20px rgba(102,126,234,0.3);">
+                            <span class="text-white" style="font-size: 3rem;">
+                                {{ request.user.first_name|first|default:request.user.username|first }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        {% if request.user.profile.is_verified %}
+                        <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1"
+                              style="border: 2px solid white;" title="Tasdiqlangan">
+                            <i class="bi bi-check-lg text-white"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Name & Role -->
+                    <h4 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                    <p class="text-muted mb-2">@{{ request.user.username }}</p>
+
+                    {% if request.user.profile.is_teacher %}
+                    <span class="badge bg-primary mb-3"><i class="bi bi-mortarboard me-1"></i>O'qituvchi</span>
+                    {% else %}
+                    <span class="badge bg-success mb-3"><i class="bi bi-person me-1"></i>Talaba</span>
+                    {% endif %}
+
+                    <!-- Bio -->
+                    {% if request.user.profile.bio %}
+                    <p class="text-muted small">{{ request.user.profile.bio }}</p>
+                    {% endif %}
+
+                    <!-- Info -->
+                    <div class="text-start mt-4">
+                        {% if request.user.email %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-envelope text-primary me-3"></i>
+                            <span class="text-muted small">{{ request.user.email }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if request.user.profile.phone %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-phone text-primary me-3"></i>
+                            <span class="text-muted small">{{ request.user.profile.phone }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if request.user.profile.location %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-primary me-3"></i>
+                            <span class="text-muted small">{{ request.user.profile.location }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if request.user.profile.birth_date %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-calendar text-primary me-3"></i>
+                            <span class="text-muted small">{{ request.user.profile.birth_date|date:"d.m.Y" }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clock text-primary me-3"></i>
+                            <span class="text-muted small">Ro'yxatdan o'tgan: {{ request.user.date_joined|date:"d.m.Y" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    {% if request.user.profile.website or request.user.profile.github or request.user.profile.telegram or request.user.profile.linkedin %}
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-center gap-2">
+                        {% if request.user.profile.website %}
+                        <a href="{{ request.user.profile.website }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-globe"></i>
+                        </a>
+                        {% endif %}
+                        {% if request.user.profile.github %}
+                        <a href="https://github.com/{{ request.user.profile.github }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-github"></i>
+                        </a>
+                        {% endif %}
+                        {% if request.user.profile.telegram %}
+                        <a href="https://t.me/{{ request.user.profile.telegram|cut:'@' }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        {% endif %}
+                        {% if request.user.profile.linkedin %}
+                        <a href="https://linkedin.com/in/{{ request.user.profile.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-3">
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Profilni tahrirlash
+                        </a>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-key me-2"></i>Parolni o'zgartirish
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats & Activity -->
+        <div class="col-lg-8">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-primary mb-2">{{ total_courses }}</div>
+                            <small class="text-muted">Kurslar</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-success mb-2">{{ completed_courses }}</div>
+                            <small class="text-muted">Tugatilgan</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-warning mb-2">{{ certificates_count }}</div>
+                            <small class="text-muted">Sertifikatlar</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-info mb-2">{{ completed_lessons }}</div>
+                            <small class="text-muted">Darslar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- XP & Level -->
+            {% if xp_profile %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-lightning-charge text-warning me-2"></i>Tajriba</h5>
+                        <span class="badge bg-primary">Level {{ xp_profile.level }}</span>
+                    </div>
+
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>{{ xp_profile.total_xp }} XP</span>
+                                <span>Keyingi level: {{ xp_profile.xp_for_next_level }} XP kerak</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" style="width: {{ xp_profile.level_progress }}%"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <span class="text-muted">
+                                <i class="bi bi-fire text-danger me-1"></i>{{ xp_profile.current_streak }} kunlik streak
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Badges -->
+            {% if user_badges %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-award text-warning me-2"></i>Nishonlar</h5>
+                    <a href="{% url 'gamification_profile' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-3">
+                        {% for ub in user_badges %}
+                        <div class="text-center" title="{{ ub.badge.name }}">
+                            <div class="badge-icon mb-1" style="font-size: 2rem;">{{ ub.badge.icon }}</div>
+                            <small class="text-muted d-block">{{ ub.badge.name|truncatewords:2 }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Courses -->
+            {% if recent_enrollments %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-collection-play text-primary me-2"></i>Kurslarim</h5>
+                    <a href="{% url 'my_courses' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for enrollment in recent_enrollments %}
+                    <a href="{% url 'course_learn' enrollment.course.slug %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ enrollment.course.title|truncatewords:6 }}</h6>
+                                <div class="progress mt-1" style="height: 5px; width: 200px;">
+                                    <div class="progress-bar" style="width: {{ enrollment.progress }}%"></div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge {% if enrollment.completed %}bg-success{% else %}bg-primary{% endif %}">
+                                    {% if enrollment.completed %}Tugatildi{% else %}{{ enrollment.progress }}%{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Certificates -->
+            {% if certificates %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-patch-check text-success me-2"></i>Sertifikatlar</h5>
+                    <a href="{% url 'my_certificates' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for cert in certificates %}
+                    <a href="{% url 'certificate_detail' cert.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ cert.course.title }}</h6>
+                                <small class="text-muted">{{ cert.issued_at|date:"d.m.Y" }}</small>
+                            </div>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
